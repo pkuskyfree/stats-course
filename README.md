@@ -1,2 +1,226 @@
+[index.html](https://github.com/user-attachments/files/32948200/index.html)
 # stats-course
 Introduction to basic statistics
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>统计学入门：看见随机</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+--bg:#f3f6f8;--panel:#fff;--ink:#16232e;--mut:#5d6f7d;--grid:#dbe3e9;--acc:#0a7c86;--accs:rgba(10,124,134,.22);--warm:#d9822b;--line:#cfd9e0}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1820;--panel:#16232e;--ink:#e6edf2;--mut:#93a5b3;--grid:#27394a;--acc:#3cc3cf;--accs:rgba(60,195,207,.25);--warm:#f0a35a;--line:#2d4153}}
+:root[data-theme="dark"]{--bg:#0f1820;--panel:#16232e;--ink:#e6edf2;--mut:#93a5b3;--grid:#27394a;--acc:#3cc3cf;--accs:rgba(60,195,207,.25);--warm:#f0a35a;--line:#2d4153}
+html{scroll-padding-top:env(safe-area-inset-top,0px);scroll-behavior:smooth}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.75 system-ui,"PingFang SC","Microsoft YaHei",sans-serif}
+.w{max-width:960px;margin:0 auto;padding:0 20px}
+h1,h2,h3{font-family:"Songti SC","Noto Serif CJK SC","Source Han Serif SC","SimSun",serif;line-height:1.3;margin:0}
+header{padding:56px 0 28px;border-bottom:1px solid var(--line)}
+h1{font-size:clamp(34px,6vw,56px);font-weight:800;letter-spacing:.02em}
+.lead{max-width:34em;color:var(--mut);margin:16px 0 22px}
+nav{display:flex;flex-wrap:wrap;gap:8px 20px}
+nav a{color:var(--acc);text-decoration:none;font-weight:600;border-bottom:2px solid transparent}
+nav a:hover,nav a:focus-visible{border-color:var(--acc);outline:none}
+section{padding:44px 0 8px}
+h2{font-size:27px;margin-bottom:8px}
+.intro{color:var(--mut);max-width:38em;margin:0 0 20px}
+dl{margin:20px 0 0;display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:22px 36px}
+dt{font-weight:700;border-left:4px solid var(--acc);padding-left:10px;font-family:"Songti SC","Noto Serif CJK SC","SimSun",serif}
+dd{margin:6px 0 0 14px;color:var(--mut);font-size:15px}
+.lab{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px;margin-top:18px}
+.ctl{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px 22px;margin-bottom:14px;align-items:end}
+.ctl .ps{display:contents}
+label{display:block;font-size:14px;color:var(--mut)}
+label b{color:var(--ink);font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;accent-color:var(--acc);margin:4px 0 0}
+select,button{font:inherit;font-size:15px;padding:6px 10px;border-radius:6px;border:1px solid var(--line);background:var(--bg);color:var(--ink)}
+button{background:var(--acc);color:var(--bg);border-color:var(--acc);font-weight:600;cursor:pointer}
+:is(select,button,input):focus-visible{outline:2px solid var(--warm);outline-offset:2px}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:700px){.pair{grid-template-columns:1fr}}
+figure{margin:0}
+figcaption{font-size:13px;color:var(--mut);margin-bottom:2px}
+canvas{width:100%;height:240px;display:block}
+.out{margin-top:12px;padding:10px 12px;background:var(--bg);border-radius:6px;font-size:15px;font-variant-numeric:tabular-nums}
+.note{font-size:14px;color:var(--mut);margin:10px 0 0}
+.sw{display:inline-block;width:14px;height:3px;vertical-align:middle;margin:0 4px 2px 10px}
+footer{padding:36px 0 48px;color:var(--mut);font-size:14px}
+</style>
+</head>
+<body>
+<header><div class="w">
+<h1>统计学入门：看见随机</h1>
+<p class="lead">先动手，再下定义。拖动滑块，观察随机数如何生成，密度函数与分布函数在图形上意味着什么。</p>
+<nav><a href="#c">基础概念</a><a href="#e1">实验一：密度与分布函数</a><a href="#e2">实验二：随机数生成器</a><a href="#e3">实验三：中心极限定理</a></nav>
+</div></header>
+
+<main class="w">
+<section id="c">
+<h2>基础概念</h2>
+<p class="intro">四个词贯穿整门课。读完后去下面的实验里找到它们。</p>
+<dl>
+<dt>总体与样本</dt><dd>总体是我们关心的全部对象，样本是从中抽取的一部分。统计推断就是用样本去认识总体。</dd>
+<dt>随机变量 X</dt><dd>把随机试验的结果变成数字。离散型取有限或可数个值（如抛 10 次硬币的正面数），连续型可取区间内任意值（如身高）。</dd>
+<dt>概率密度函数 f(x)</dt><dd>连续型随机变量的“浓度”曲线。P(a &lt; X ≤ b) 等于曲线在 a 到 b 之间围成的面积，曲线总面积为 1。离散型对应的是概率质量函数 P(X = k)。</dd>
+<dt>分布函数 F(x)</dt><dd>F(x) = P(X ≤ x)，从 0 单调上升到 1。它是密度曲线从左边累积到 x 的面积，所以 P(a &lt; X ≤ b) = F(b) − F(a)。</dd>
+<dt>期望与方差</dt><dd>期望 μ 是分布的“重心”，方差 σ² 衡量数据围绕重心的分散程度。样本均值 x̄ 和样本标准差 s 是它们的估计。</dd>
+<dt>大数定律与中心极限定理</dt><dd>样本越多，样本均值越接近 μ。把许多样本的均值汇总起来，其分布近似正态，中心为 μ，标准差为 σ/√m。</dd>
+</dl>
+</section>
+
+<section id="e1">
+<h2>实验一：密度函数与分布函数</h2>
+<p class="intro">选一个分布并调整参数，再拖动 a、b 两个端点。左图阴影面积，就是右图两个端点高度之差。</p>
+<div class="lab">
+<div class="ctl" id="k1"></div>
+<div class="ctl">
+<label>左端点 a = <b id="va"></b><input type="range" id="ea"></label>
+<label>右端点 b = <b id="vb"></b><input type="range" id="eb"></label>
+</div>
+<div class="pair">
+<figure><figcaption>密度函数 f(x)（离散型为概率质量函数）</figcaption><canvas id="c1"></canvas></figure>
+<figure><figcaption>分布函数 F(x) = P(X ≤ x)</figcaption><canvas id="c2"></canvas></figure>
+</div>
+<div class="out" id="o1"></div>
+</div>
+</section>
+
+<section id="e2">
+<h2>实验二：随机数生成器</h2>
+<p class="intro">每次点击都会从所选分布中抽出 n 个随机数。n 较小时图形参差不齐，n 增大后直方图逐渐贴近理论密度，经验分布函数贴近理论分布函数。</p>
+<div class="lab">
+<div class="ctl" id="k2"></div>
+<div class="ctl">
+<label>样本量 n = <b>500</b><input type="range" id="sn" min="10" max="20000" step="10" value="500"></label>
+<label>直方图组数 = <b>30</b><input type="range" id="sb" min="5" max="80" step="1" value="30"></label>
+<div><button id="go">重新抽样</button></div>
+</div>
+<div class="pair">
+<figure><figcaption>直方图（密度尺度）<span class="sw" style="background:var(--accs);height:10px"></span>样本<span class="sw" style="background:var(--warm)"></span>理论 f(x)</figcaption><canvas id="c3"></canvas></figure>
+<figure><figcaption>经验分布函数<span class="sw" style="background:var(--acc)"></span>样本<span class="sw" style="background:var(--warm)"></span>理论 F(x)</figcaption><canvas id="c4"></canvas></figure>
+</div>
+<div class="out" id="o2"></div>
+</div>
+</section>
+
+<section id="e3">
+<h2>实验三：中心极限定理</h2>
+<p class="intro">每次从所选分布中抽 m 个数取平均，重复 3000 次，再画出这 3000 个均值的直方图。即使原分布是偏斜的指数分布，m 变大后均值也会呈钟形。</p>
+<div class="lab">
+<div class="ctl" id="k3"></div>
+<div class="ctl">
+<label>每组样本量 m = <b>1</b><input type="range" id="sm" min="1" max="60" step="1" value="1"></label>
+<div><button id="go3">重新模拟</button></div>
+</div>
+<figure><figcaption>3000 个样本均值的直方图<span class="sw" style="background:var(--warm)"></span>正态曲线 N(μ, σ²/m)</figcaption><canvas id="c5"></canvas></figure>
+<div class="out" id="o3"></div>
+</div>
+</section>
+</main>
+<footer><div class="w">所有图形均在浏览器中实时计算，刷新页面会生成新的随机数。</div></footer>
+
+<script>
+const $=id=>document.getElementById(id);
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const lf=[0];for(let i=1;i<=200;i++)lf[i]=lf[i-1]+Math.log(i);
+const erf=x=>{const s=Math.sign(x);x=Math.abs(x);const t=1/(1+.3275911*x);return s*(1-((((1.061405429*t-1.453152027)*t+1.421413741)*t-.284496736)*t+.254829592)*t*Math.exp(-x*x))};
+const Phi=z=>.5*(1+erf(z/Math.SQRT2));
+const gauss=()=>Math.sqrt(-2*Math.log(1-Math.random()))*Math.cos(2*Math.PI*Math.random());
+const D={
+normal:{n:'正态分布',p:[{k:'mu',l:'均值 μ',min:-3,max:3,step:.1,v:0},{k:'s',l:'标准差 σ',min:.3,max:3,step:.1,v:1}],
+ f:(x,q)=>Math.exp(-(((x-q.mu)/q.s)**2)/2)/(q.s*Math.sqrt(2*Math.PI)),F:(x,q)=>Phi((x-q.mu)/q.s),
+ s:q=>q.mu+q.s*gauss(),mean:q=>q.mu,sd:q=>q.s,rng:q=>[q.mu-4*q.s,q.mu+4*q.s]},
+uniform:{n:'均匀分布',p:[{k:'a',l:'下界 a',min:-3,max:3,step:.1,v:0},{k:'w',l:'区间长度',min:.5,max:6,step:.1,v:2}],
+ f:(x,q)=>x>=q.a&&x<=q.a+q.w?1/q.w:0,F:(x,q)=>Math.min(1,Math.max(0,(x-q.a)/q.w)),
+ s:q=>q.a+q.w*Math.random(),mean:q=>q.a+q.w/2,sd:q=>q.w/Math.sqrt(12),rng:q=>[q.a-.5,q.a+q.w+.5]},
+exp:{n:'指数分布',p:[{k:'l',l:'速率 λ',min:.2,max:3,step:.1,v:1}],
+ f:(x,q)=>x<0?0:q.l*Math.exp(-q.l*x),F:(x,q)=>x<0?0:1-Math.exp(-q.l*x),
+ s:q=>-Math.log(1-Math.random())/q.l,mean:q=>1/q.l,sd:q=>1/q.l,rng:q=>[-.3/q.l,6/q.l]},
+binom:{n:'二项分布（离散）',disc:1,p:[{k:'n',l:'试验次数 n',min:1,max:50,step:1,v:10},{k:'p',l:'成功概率 p',min:.05,max:.95,step:.05,v:.4}],
+ f:(k,q)=>k<0||k>q.n?0:Math.exp(lf[q.n]-lf[k]-lf[q.n-k]+k*Math.log(q.p)+(q.n-k)*Math.log(1-q.p)),
+ F:(x,q)=>{let s=0;for(let k=0;k<=Math.min(q.n,Math.floor(x+1e-9));k++)s+=D.binom.f(k,q);return s},
+ s:q=>{let c=0;for(let i=0;i<q.n;i++)if(Math.random()<q.p)c++;return c},mean:q=>q.n*q.p,sd:q=>Math.sqrt(q.n*q.p*(1-q.p)),rng:q=>[-1,q.n+1]}
+};
+function ctl(root,onc,ond){
+ root.innerHTML='<label>分布<br><select>'+Object.entries(D).map(([k,d])=>`<option value="${k}">${d.n}</option>`).join('')+'</select></label><div class="ps"></div>';
+ const sel=root.querySelector('select'),ps=root.querySelector('.ps'),o={d:D.normal,q:{}};
+ o.build=()=>{o.d=D[sel.value];ps.innerHTML='';o.q={};
+  o.d.p.forEach(p=>{o.q[p.k]=p.v;const l=document.createElement('label');
+   l.innerHTML=`${p.l} = <b>${p.v}</b><input type="range" min="${p.min}" max="${p.max}" step="${p.step}" value="${p.v}">`;
+   l.querySelector('input').oninput=e=>{o.q[p.k]=+e.target.value;l.querySelector('b').textContent=e.target.value;onc()};ps.append(l)});
+  ond&&ond(o);onc()};
+ sel.onchange=o.build;return o}
+function bindB(id,cb){const e=$(id);e.oninput=()=>{e.parentNode.querySelector('b').textContent=e.value;cb()}}
+function ticks(a,b,n){const s=(b-a)/n,p=10**Math.floor(Math.log10(s)),m=s/p,st=(m<1.5?1:m<3.5?2:m<7.5?5:10)*p,t=[];for(let v=Math.ceil(a/st-1e-9)*st;v<=b+1e-9;v+=st)t.push(+v.toFixed(10));return t}
+function ax(c,xr,ym){
+ const r=devicePixelRatio||1,w=c.clientWidth,h=c.clientHeight;c.width=w*r;c.height=h*r;
+ const g=c.getContext('2d');g.setTransform(r,0,0,r,0,0);
+ const L=42,R=12,T=10,B=26,X=x=>L+(x-xr[0])/(xr[1]-xr[0])*(w-L-R),Y=y=>h-B-y/ym*(h-B-T);
+ g.font='12px system-ui';g.lineWidth=1;g.strokeStyle=css('--grid');g.fillStyle=css('--mut');
+ g.textAlign='center';ticks(xr[0],xr[1],6).forEach(v=>{g.beginPath();g.moveTo(X(v),T);g.lineTo(X(v),h-B);g.stroke();g.fillText(String(+v.toFixed(2)),X(v),h-8)});
+ g.textAlign='right';ticks(0,ym,4).forEach(v=>{g.beginPath();g.moveTo(L,Y(v));g.lineTo(w-R,Y(v));g.stroke();g.fillText(String(+v.toFixed(2)),L-5,Y(v)+4)});
+ return {g,X,Y,w,h,L,R,T,B}}
+function curve(A,f,xr,col,lw){const g=A.g;g.beginPath();for(let i=0;i<=400;i++){const x=xr[0]+(xr[1]-xr[0])*i/400;i?g.lineTo(A.X(x),A.Y(f(x))):g.moveTo(A.X(x),A.Y(f(x)))}g.strokeStyle=col;g.lineWidth=lw||2;g.stroke()}
+function dash(A,x,y0,y1,col){const g=A.g;g.save();g.setLineDash([5,4]);g.strokeStyle=col;g.lineWidth=1.5;g.beginPath();g.moveTo(A.X(x),A.Y(y0));g.lineTo(A.X(x),A.Y(y1));g.stroke();g.restore()}
+function ymaxOf(d,q,r){let m=0;if(d.disc){for(let k=0;k<=q.n;k++)m=Math.max(m,d.f(k,q))}else for(let i=0;i<=400;i++)m=Math.max(m,d.f(r[0]+(r[1]-r[0])*i/400,q));return m}
+const fmt=v=>(+v.toFixed(3)).toString();
+
+/* 实验一 */
+const E=ctl($('k1'),drawE,o=>{const r=o.d.rng(o.q),m=o.d.mean(o.q),s=o.d.sd(o.q),st=o.d.disc?1:(r[1]-r[0])/200;
+ [['ea',m-s],['eb',m+s]].forEach(([id,v])=>{const e=$(id);e.min=r[0];e.max=r[1];e.step=st;e.value=o.d.disc?Math.round(v):v;$(id==='ea'?'va':'vb').textContent=fmt(+e.value)})});
+bindB('ea',drawE);bindB('eb',drawE);
+function drawE(){
+ const {d,q}=E,r=d.rng(q),a=+$('ea').value,b=+$('eb').value,lo=Math.min(a,b),hi=Math.max(a,b);
+ $('va').textContent=fmt(a);$('vb').textContent=fmt(b);
+ const A=ax($('c1'),r,ymaxOf(d,q,r)*1.15),g=A.g,acc=css('--acc'),as=css('--accs');
+ if(d.disc){for(let k=0;k<=q.n;k++){const y=d.f(k,q),x0=A.X(k-.4),x1=A.X(k+.4);g.fillStyle=(k>lo&&k<=hi)?acc:as;g.fillRect(x0,A.Y(y),x1-x0,A.Y(0)-A.Y(y))}}
+ else{g.beginPath();g.moveTo(A.X(lo),A.Y(0));for(let i=0;i<=120;i++){const x=lo+(hi-lo)*i/120;g.lineTo(A.X(x),A.Y(d.f(x,q)))}g.lineTo(A.X(hi),A.Y(0));g.fillStyle=as;g.fill();curve(A,x=>d.f(x,q),r,acc,2.5)}
+ [lo,hi].forEach(x=>dash(A,x,0,A.h&&ymaxOf(d,q,r)*1.15,css('--warm')));
+ const B=ax($('c2'),r,1);curve(B,x=>d.F(x,q),r,acc,2.5);
+ const Fl=d.F(lo,q),Fh=d.F(hi,q);
+ [[lo,Fl],[hi,Fh]].forEach(([x,y])=>{dash(B,x,0,y,css('--warm'));B.g.save();B.g.setLineDash([5,4]);B.g.strokeStyle=css('--warm');B.g.beginPath();B.g.moveTo(B.L,B.Y(y));B.g.lineTo(B.X(x),B.Y(y));B.g.stroke();B.g.restore();B.g.beginPath();B.g.arc(B.X(x),B.Y(y),4.5,0,7);B.g.fillStyle=css('--warm');B.g.fill()});
+ $('o1').innerHTML=`P(${fmt(lo)} &lt; X ≤ ${fmt(hi)}) = F(${fmt(hi)}) − F(${fmt(lo)}) = ${Fh.toFixed(4)} − ${Fl.toFixed(4)} = <b>${(Fh-Fl).toFixed(4)}</b><br>${d.disc?'左图高亮的柱子（k 取 a 之后到 b 为止）的高度之和即为该概率。':'左图阴影面积即为该概率；右图中两个橙色点的高度差也是它。'}`}
+
+/* 实验二 */
+let smp=[];
+const S=ctl($('k2'),()=>{resample();drawS()});
+function resample(){const n=+$('sn').value;smp=Array.from({length:n},()=>S.d.s(S.q))}
+bindB('sn',()=>{resample();drawS()});bindB('sb',drawS);$('go').onclick=()=>{resample();drawS()};
+function hist(vals,d,q,r,k,A0){ // 返回 [{x0,w,h}]，h 为密度
+ const n=vals.length;if(d.disc){const c=Array(q.n+1).fill(0);vals.forEach(v=>c[v]++);return c.map((v,i)=>({x0:i-.4,w:.8,h:v/n}))}
+ const w=(r[1]-r[0])/k,c=Array(k).fill(0);vals.forEach(v=>{const i=Math.floor((v-r[0])/w);if(i>=0&&i<k)c[i]++});return c.map((v,i)=>({x0:r[0]+i*w,w,h:v/(n*w)}))}
+function drawHist(cvs,vals,d,q,r,k,fth,lineCol){
+ const H=hist(vals,d,q,r,k),ym=Math.max(...H.map(b=>b.h),ymaxOf(d,q,r)*(fth?1:0))*1.12||1;
+ const A=ax(cvs,r,ym),g=A.g;g.fillStyle=css('--accs');g.strokeStyle=css('--acc');g.lineWidth=1;
+ H.forEach(b=>{const x0=A.X(b.x0),x1=A.X(b.x0+b.w);g.fillRect(x0,A.Y(b.h),x1-x0,A.Y(0)-A.Y(b.h));g.strokeRect(x0,A.Y(b.h),x1-x0,A.Y(0)-A.Y(b.h))});
+ return A}
+function drawS(){
+ const {d,q}=S,r=d.rng(q),n=smp.length,k=+$('sb').value,A=drawHist($('c3'),smp,d,q,r,k,1),g=A.g,warm=css('--warm');
+ if(d.disc){for(let i=0;i<=q.n;i++){g.beginPath();g.arc(A.X(i),A.Y(d.f(i,q)),4,0,7);g.fillStyle=warm;g.fill()}}else curve(A,x=>d.f(x,q),r,warm,2.5);
+ const srt=[...smp].sort((x,y)=>x-y),cnt=x=>{let a=0,b=n;while(a<b){const m=(a+b)>>1;srt[m]<=x?a=m+1:b=m}return a/n};
+ const B=ax($('c4'),r,1);curve(B,x=>d.F(x,q),r,warm,2.5);curve(B,cnt,r,css('--acc'),1.8);
+ const m=smp.reduce((s,v)=>s+v,0)/n,s=Math.sqrt(smp.reduce((t,v)=>t+(v-m)**2,0)/(n-1));
+ $('o2').innerHTML=`n = ${n}　样本均值 x̄ = <b>${m.toFixed(3)}</b>（理论 μ = ${fmt(d.mean(q))}）　样本标准差 s = <b>${s.toFixed(3)}</b>（理论 σ = ${fmt(d.sd(q))}）`}
+
+/* 实验三 */
+let means=[];
+const C=ctl($('k3'),()=>{sim();drawC()});
+function sim(){const m=+$('sm').value;means=Array.from({length:3000},()=>{let t=0;for(let i=0;i<m;i++)t+=C.d.s(C.q);return t/m})}
+bindB('sm',()=>{sim();drawC()});$('go3').onclick=()=>{sim();drawC()};
+function drawC(){
+ const {d,q}=C,m=+$('sm').value,mu=d.mean(q),sg=d.sd(q)/Math.sqrt(m),r=[mu-4*sg,mu+4*sg],n=means.length;
+ const w=(r[1]-r[0])/40,c=Array(40).fill(0);means.forEach(v=>{const i=Math.floor((v-r[0])/w);if(i>=0&&i<40)c[i]++});
+ const nf=x=>Math.exp(-(((x-mu)/sg)**2)/2)/(sg*Math.sqrt(2*Math.PI)),ym=Math.max(...c)/(n*w),A=ax($('c5'),r,Math.max(ym,nf(mu))*1.15),g=A.g;
+ g.fillStyle=css('--accs');g.strokeStyle=css('--acc');c.forEach((v,i)=>{const h=v/(n*w),x0=A.X(r[0]+i*w),x1=A.X(r[0]+(i+1)*w);g.fillRect(x0,A.Y(h),x1-x0,A.Y(0)-A.Y(h));g.strokeRect(x0,A.Y(h),x1-x0,A.Y(0)-A.Y(h))});
+ curve(A,nf,r,css('--warm'),2.5);
+ const am=means.reduce((s,v)=>s+v,0)/n,as=Math.sqrt(means.reduce((t,v)=>t+(v-am)**2,0)/(n-1));
+ $('o3').innerHTML=`m = ${m}　均值的平均 = <b>${am.toFixed(3)}</b>（理论 μ = ${fmt(mu)}）　均值的标准差 = <b>${as.toFixed(3)}</b>（理论 σ/√m = ${fmt(sg)}）`}
+
+E.build();S.build();C.build();
+const all=()=>{drawE();drawS();drawC()};
+addEventListener('resize',all);matchMedia('(prefers-color-scheme:dark)').addEventListener('change',all);
+</script>
+</body>
+</html>
