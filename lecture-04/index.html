@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>第四讲　回归分析与 OLS 估计</title><link rel="stylesheet" href="../assets/style.css"></head>
+<body><header><div class="w"><h1>第四讲　回归分析与 OLS 估计</h1><p class="lead">用一条直线概括 y 随 x 变化的趋势，并学会判断这条线是否可靠。</p><nav><a href="../">← 课程首页</a></nav></div></header>
+<main class="w">
+<section><h2>OLS 的思想</h2><p class="intro">简单线性回归假设 y = β₀ + β₁x + ε。OLS（普通最小二乘）选择使残差平方和最小的直线。</p>
+<div class="eq">SSR(b₀, b₁) = Σ (yᵢ − b₀ − b₁xᵢ)²<br>b₁ = Σ(xᵢ − x̄)(yᵢ − ȳ) / Σ(xᵢ − x̄)²，b₀ = ȳ − b₁x̄<br>R² = 1 − SSR / SST</div>
+<dl><dt>残差</dt><dd>观测值与拟合线的垂直距离 eᵢ = yᵢ − ŷᵢ。</dd>
+<dt>无偏性</dt><dd>在模型成立时 E[b₁] = β₁：多次抽样的估计平均下来等于真值。</dd>
+<dt>标准误</dt><dd>b₁ 的标准差约为 σ/√Σ(xᵢ − x̄)²：噪声越小、x 越分散、样本越多，估计越准。</dd></dl></section>
+<section id="r1"><h2>实验一：手动拟合 vs OLS</h2><p class="intro">数据由 y = 2 + 1.5x + 噪声 生成。拖动 b₀、b₁ 手动拟合，橙色竖线是残差。右图是固定最优截距后 SSR 随斜率变化的曲线，OLS 解在谷底（黑点）。</p>
+<div class="lab"><div class="ctl"><label>样本量 n = <b>40</b><input type="range" id="n" min="10" max="200" step="5" value="40"></label>
+<label>噪声标准差 = <b>2</b><input type="range" id="sg" min="0.5" max="5" step="0.5" value="2"></label>
+<label><input type="checkbox" id="ol"> 加入一个离群点</label><label><input type="checkbox" id="sh"> 显示 OLS 直线（黑色）</label><div><button id="rg">重新生成数据</button></div></div>
+<div class="ctl"><label>截距 b₀ = <b>0</b><input type="range" id="b0" min="-5" max="10" step="0.1" value="0"></label><label>斜率 b₁ = <b>0.5</b><input type="range" id="b1" min="-1" max="4" step="0.05" value="0.5"></label></div>
+<div class="pair"><figure><figcaption>散点与拟合线</figcaption><canvas id="c1"></canvas></figure><figure><figcaption>SSR 随斜率变化（橙点：你的直线）</figcaption><canvas id="c2"></canvas></figure></div><div class="out" id="o1"></div></div></section>
+<section id="r2"><h2>实验二：估计量的抽样分布</h2><p class="intro">重复生成 2000 组数据并各自做 OLS，把 2000 个 b₁ 画成直方图。它以真值 1.5 为中心，近似正态（中心极限定理再次出现），样本越大越集中。</p>
+<div class="lab"><div class="ctl"><label>每组样本量 n = <b>30</b><input type="range" id="n2" min="10" max="200" step="5" value="30"></label>
+<label>噪声标准差 = <b>2</b><input type="range" id="s2" min="0.5" max="5" step="0.5" value="2"></label><div><button id="g2">重新模拟</button></div></div>
+<figure><figcaption>2000 个 b₁ 的直方图<span class="sw" style="background:var(--warm)"></span>理论正态曲线</figcaption><canvas id="c3"></canvas></figure><div class="out" id="o2"></div></div></section></main>
+<div class="w pn"><a href="../lecture-03/">← 上一讲：中心极限定理</a><a href="../lecture-05/">下一讲：回归分析的现实应用 →</a></div><footer><div class="w">所有图形均在浏览器中实时计算，数据均为模拟生成。</div></footer>
+<script src="../assets/lib.js"></script>
+<script>
+let X=[],Y=[];
+function gen(){const n=+$('n').value,s=+$('sg').value;X=Array.from({length:n},()=>Math.random()*10);Y=X.map(x=>2+1.5*x+s*gauss());if($('ol').checked){X.push(9.5);Y.push(0)}d1()}
+['n','sg'].forEach(i=>bindB(i,gen));$('ol').onchange=gen;$('rg').onclick=gen;['b0','b1'].forEach(i=>bindB(i,d1));$('sh').onchange=d1;
+function d1(){const b0=+$('b0').value,b1=+$('b1').value,[o0,o1]=ols(X,Y),n=X.length,sum=v=>v.reduce((a,b)=>a+b,0),mx=sum(X)/n,my=sum(Y)/n;
+ const ssr=(a,b)=>X.reduce((s,x,i)=>s+(Y[i]-a-b*x)**2,0),sst=Y.reduce((s,y)=>s+(y-my)**2,0),lo=Math.min(...Y,0)-1,hi=Math.max(...Y)+1,A=ax($('c1'),[0,10],hi,lo),g=A.g;
+ g.strokeStyle=css('--warm');g.globalAlpha=.5;X.forEach((x,i)=>{g.beginPath();g.moveTo(A.X(x),A.Y(Y[i]));g.lineTo(A.X(x),A.Y(b0+b1*x));g.stroke()});g.globalAlpha=1;
+ scat(A,X,Y,css('--acc'));seg(A,0,b0,10,b0+10*b1,css('--warm'),2.5);if($('sh').checked)seg(A,0,o0,10,o0+10*o1,css('--ink'),2);
+ const P=b=>ssr(my-b*mx,b),top=Math.max(P(-1),P(4)),B=ax($('c2'),[-1,4],top);
+ curve(B,P,[-1,4],css('--acc'),2.5);[[b1,Math.min(ssr(b0,b1),top),'--warm'],[o1,P(o1),'--ink']].forEach(([x,y,c])=>{B.g.fillStyle=css(c);B.g.beginPath();B.g.arc(B.X(x),B.Y(y),5,0,7);B.g.fill()});
+ $('o1').innerHTML=`你的直线 SSR = <b>${ssr(b0,b1).toFixed(1)}</b>　OLS：b₀ = ${o0.toFixed(3)}，b₁ = ${o1.toFixed(3)}，SSR = ${ssr(o0,o1).toFixed(1)}，R² = ${(1-ssr(o0,o1)/sst).toFixed(3)}　（真实 β₀ = 2，β₁ = 1.5）`}
+['n2','s2'].forEach(i=>bindB(i,d2));$('g2').onclick=d2;
+function d2(){const n=+$('n2').value,s=+$('s2').value,v=[];for(let t=0;t<2000;t++){const x=Array.from({length:n},()=>Math.random()*10);v.push(ols(x,x.map(a=>2+1.5*a+s*gauss()))[1])}
+ const se=s/Math.sqrt(n*100/12),m=v.reduce((a,b)=>a+b)/2000,sd=Math.sqrt(v.reduce((t,a)=>t+(a-m)**2,0)/1999);hn($('c3'),v,1.5,se);
+ $('o2').innerHTML=`2000 次估计的平均 = <b>${m.toFixed(3)}</b>（真实 β₁ = 1.5，无偏）　标准差 = <b>${sd.toFixed(4)}</b>（理论约 σ/√Sxx = ${se.toFixed(4)}）`}
+function redraw(){d1();d2()}
+gen();d2();
+addEventListener('resize',()=>{try{redraw()}catch(e){}});matchMedia("(prefers-color-scheme:dark)").addEventListener("change",()=>dispatchEvent(new Event("resize")));
+</script></body></html>

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>第二讲　数学期望</title><link rel="stylesheet" href="../assets/style.css"></head>
+<body><header><div class="w"><h1>第二讲　数学期望</h1><p class="lead">期望是分布的重心，也是最好的单点预测。</p><nav><a href="../">← 课程首页</a></nav></div></header>
+<main class="w">
+<section><h2>期望是什么</h2><p class="intro">期望 E[X] 是按概率加权后的平均值。</p>
+<div class="eq">离散型：E[X] = Σ x · P(X = x)　　连续型：E[X] = ∫ x · f(x) dx</div>
+<dl><dt>线性性</dt><dd>E[aX + b] = aE[X] + b，E[X + Y] = E[X] + E[Y]。后一式不要求 X 与 Y 独立。</dd>
+<dt>方差</dt><dd>Var(X) = E[(X − μ)²] = E[X²] − μ²，衡量偏离期望的平均平方距离。</dd>
+<dt>最优预测</dt><dd>在所有常数 c 中，使均方误差 E[(X − c)²] 最小的是 c = μ。回归分析正是把这个想法推广到“给定 x 时预测 y”。</dd>
+<dt>大数定律</dt><dd>独立同分布样本的均值 x̄ₙ 随 n 增大趋近 μ，这是用样本估计期望的依据。</dd></dl></section>
+<section id="x1"><h2>实验一：期望是最佳的单点预测</h2><p class="intro">拖动预测值 c。右图是均方误差 E[(X−c)²] = σ² + (μ−c)²，它在 c = μ 处最小，最小值恰好是方差。</p>
+<div class="lab"><div class="ctl" id="k1"></div><div class="ctl"><label>预测值 c = <b>0</b><input type="range" id="c0"></label></div>
+<div class="pair"><figure><figcaption>分布、期望 μ（青色虚线）与预测值 c（橙色虚线）</figcaption><canvas id="c1"></canvas></figure>
+<figure><figcaption>均方误差随 c 变化</figcaption><canvas id="c2"></canvas></figure></div><div class="out" id="o1"></div></div></section>
+<section id="x2"><h2>实验二：大数定律</h2><p class="intro">5 条独立路径各自记录“前 n 次抽样的平均值”。起初路径摆动很大，随 n 增大都收拢到 μ 附近，摆动幅度约为 σ/√n。</p>
+<div class="lab"><div class="ctl" id="k2"></div><div class="ctl"><label>抽样次数 n = <b>1000</b><input type="range" id="n2" min="10" max="5000" step="10" value="1000"></label><div><button id="g2">重新抽样</button></div></div>
+<figure><figcaption>前 n 次样本均值 x̄ₙ 的轨迹（黑色虚线为 μ）</figcaption><canvas id="c3"></canvas></figure><div class="out" id="o2"></div></div></section></main>
+<div class="w pn"><a href="../lecture-01/">← 上一讲：基础概念与分布模拟</a><a href="../lecture-03/">下一讲：中心极限定理 →</a></div><footer><div class="w">所有图形均在浏览器中实时计算，数据均为模拟生成。</div></footer>
+<script src="../assets/lib.js"></script>
+<script>
+const A1=ctl($('k1'),d1,o=>{const r=o.d.rng(o.q),e=$('c0');e.min=r[0];e.max=r[1];e.step=(r[1]-r[0])/200;e.value=o.d.mean(o.q)+(r[1]-r[0])*.15});
+bindB('c0',d1);
+function d1(){const {d,q}=A1,r=d.rng(q),mu=d.mean(q),sg=d.sd(q),c=+$('c0').value;
+ $('c0').parentNode.querySelector('b').textContent=fmt(c);
+ const ym=ymaxOf(d,q,r)*1.15,A=ax($('c1'),r,ym),g=A.g;
+ if(d.disc){for(let k=0;k<=q.n;k++){const y=d.f(k,q);g.fillStyle=css('--accs');g.fillRect(A.X(k-.4),A.Y(y),A.X(k+.4)-A.X(k-.4),A.Y(0)-A.Y(y))}}else curve(A,x=>d.f(x,q),r,css('--acc'),2.5);
+ dash(A,mu,0,ym,css('--acc'));dash(A,c,0,ym,css('--warm'));
+ const mse=x=>sg*sg+(mu-x)**2,B=ax($('c2'),r,sg*sg+Math.max((mu-r[0])**2,(mu-r[1])**2)*1.05);
+ curve(B,mse,r,css('--acc'),2.5);dash(B,mu,0,mse(mu),css('--acc'));B.g.beginPath();B.g.arc(B.X(c),B.Y(mse(c)),5,0,7);B.g.fillStyle=css('--warm');B.g.fill();
+ $('o1').innerHTML=`c = ${fmt(c)}　E[(X−c)²] = σ² + (μ−c)² = ${fmt(sg*sg)} + ${fmt((mu-c)**2)} = <b>${fmt(mse(c))}</b>　（最小值 σ² = ${fmt(sg*sg)}，在 c = μ = ${fmt(mu)} 处取得）`}
+let paths=[];
+const A2=ctl($('k2'),()=>{sim();d2()});
+function sim(){const n=+$('n2').value;paths=Array.from({length:5},()=>{let s=0;return Array.from({length:n},(_,i)=>(s+=A2.d.s(A2.q))/(i+1))})}
+bindB('n2',()=>{sim();d2()});$('g2').onclick=()=>{sim();d2()};
+function d2(){const {d,q}=A2,mu=d.mean(q),sg=d.sd(q),n=paths[0].length,A=ax($('c3'),[1,n],mu+2.5*sg,mu-2.5*sg),g=A.g,st=Math.max(1,Math.floor(n/500));
+ paths.forEach((p,k)=>{g.beginPath();for(let i=0;i<n;i+=st)i?g.lineTo(A.X(i+1),A.Y(p[i])):g.moveTo(A.X(1),A.Y(p[0]));g.strokeStyle=`hsl(${k*65+170} 60% 48%)`;g.lineWidth=1.5;g.stroke()});
+ g.save();g.setLineDash([5,4]);g.strokeStyle=css('--ink');g.beginPath();g.moveTo(A.X(1),A.Y(mu));g.lineTo(A.X(n),A.Y(mu));g.stroke();g.restore();
+ $('o2').innerHTML=`n = ${n}　5 条路径的最终均值：${paths.map(p=>p[n-1].toFixed(3)).join('、')}　理论 μ = ${fmt(mu)}，标准误 σ/√n = ${fmt(sg/Math.sqrt(n))}`}
+function redraw(){d1();d2()}
+A1.build();A2.build();
+addEventListener('resize',()=>{try{redraw()}catch(e){}});matchMedia("(prefers-color-scheme:dark)").addEventListener("change",()=>dispatchEvent(new Event("resize")));
+</script></body></html>

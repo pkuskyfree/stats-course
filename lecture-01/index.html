@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>第一讲　基础概念与分布模拟</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<header><div class="w">
+<h1>第一讲　基础概念与分布模拟</h1>
+<p class="lead">先动手，再下定义。拖动滑块，观察随机数如何生成，密度函数与分布函数在图形上意味着什么。</p>
+<nav><a href="../">← 课程首页</a><a href="#c">基础概念</a><a href="#e1">实验一：密度与分布函数</a><a href="#e2">实验二：随机数生成器</a></nav>
+</div></header>
+
+<main class="w">
+<section id="c">
+<h2>基础概念</h2>
+<p class="intro">四个词贯穿整门课。读完后去下面的实验里找到它们。</p>
+<dl>
+<dt>总体与样本</dt><dd>总体是我们关心的全部对象，样本是从中抽取的一部分。统计推断就是用样本去认识总体。</dd>
+<dt>随机变量 X</dt><dd>把随机试验的结果变成数字。离散型取有限或可数个值（如抛 10 次硬币的正面数），连续型可取区间内任意值（如身高）。</dd>
+<dt>概率密度函数 f(x)</dt><dd>连续型随机变量的“浓度”曲线。P(a &lt; X ≤ b) 等于曲线在 a 到 b 之间围成的面积，曲线总面积为 1。离散型对应的是概率质量函数 P(X = k)。</dd>
+<dt>分布函数 F(x)</dt><dd>F(x) = P(X ≤ x)，从 0 单调上升到 1。它是密度曲线从左边累积到 x 的面积，所以 P(a &lt; X ≤ b) = F(b) − F(a)。</dd>
+<dt>期望与方差</dt><dd>期望 μ 是分布的“重心”，方差 σ² 衡量数据围绕重心的分散程度。样本均值 x̄ 和样本标准差 s 是它们的估计。</dd>
+<dt>大数定律与中心极限定理</dt><dd>样本越多，样本均值越接近 μ。把许多样本的均值汇总起来，其分布近似正态，中心为 μ，标准差为 σ/√m。</dd>
+</dl>
+</section>
+
+<section id="e1">
+<h2>实验一：密度函数与分布函数</h2>
+<p class="intro">选一个分布并调整参数，再拖动 a、b 两个端点。左图阴影面积，就是右图两个端点高度之差。</p>
+<div class="lab">
+<div class="ctl" id="k1"></div>
+<div class="ctl">
+<label>左端点 a = <b id="va"></b><input type="range" id="ea"></label>
+<label>右端点 b = <b id="vb"></b><input type="range" id="eb"></label>
+</div>
+<div class="pair">
+<figure><figcaption>密度函数 f(x)（离散型为概率质量函数）</figcaption><canvas id="c1"></canvas></figure>
+<figure><figcaption>分布函数 F(x) = P(X ≤ x)</figcaption><canvas id="c2"></canvas></figure>
+</div>
+<div class="out" id="o1"></div>
+</div>
+</section>
+
+<section id="e2">
+<h2>实验二：随机数生成器</h2>
+<p class="intro">每次点击都会从所选分布中抽出 n 个随机数。n 较小时图形参差不齐，n 增大后直方图逐渐贴近理论密度，经验分布函数贴近理论分布函数。</p>
+<div class="lab">
+<div class="ctl" id="k2"></div>
+<div class="ctl">
+<label>样本量 n = <b>500</b><input type="range" id="sn" min="10" max="20000" step="10" value="500"></label>
+<label>直方图组数 = <b>30</b><input type="range" id="sb" min="5" max="80" step="1" value="30"></label>
+<div><button id="go">重新抽样</button></div>
+</div>
+<div class="pair">
+<figure><figcaption>直方图（密度尺度）<span class="sw" style="background:var(--accs);height:10px"></span>样本<span class="sw" style="background:var(--warm)"></span>理论 f(x)</figcaption><canvas id="c3"></canvas></figure>
+<figure><figcaption>经验分布函数<span class="sw" style="background:var(--acc)"></span>样本<span class="sw" style="background:var(--warm)"></span>理论 F(x)</figcaption><canvas id="c4"></canvas></figure>
+</div>
+<div class="out" id="o2"></div>
+</div>
+</section>
+
+</main>
+<div class="w pn"><span></span><a href="../lecture-02/">下一讲：数学期望 →</a></div>
+<footer><div class="w">所有图形均在浏览器中实时计算，刷新页面会生成新的随机数。</div></footer>
+
+<script src="../assets/lib.js"></script>
+<script>
+/* 实验一 */
+const E=ctl($('k1'),drawE,o=>{const r=o.d.rng(o.q),m=o.d.mean(o.q),s=o.d.sd(o.q),st=o.d.disc?1:(r[1]-r[0])/200;
+ [['ea',m-s],['eb',m+s]].forEach(([id,v])=>{const e=$(id);e.min=r[0];e.max=r[1];e.step=st;e.value=o.d.disc?Math.round(v):v;$(id==='ea'?'va':'vb').textContent=fmt(+e.value)})});
+bindB('ea',drawE);bindB('eb',drawE);
+function drawE(){
+ const {d,q}=E,r=d.rng(q),a=+$('ea').value,b=+$('eb').value,lo=Math.min(a,b),hi=Math.max(a,b);
+ $('va').textContent=fmt(a);$('vb').textContent=fmt(b);
+ const A=ax($('c1'),r,ymaxOf(d,q,r)*1.15),g=A.g,acc=css('--acc'),as=css('--accs');
+ if(d.disc){for(let k=0;k<=q.n;k++){const y=d.f(k,q),x0=A.X(k-.4),x1=A.X(k+.4);g.fillStyle=(k>lo&&k<=hi)?acc:as;g.fillRect(x0,A.Y(y),x1-x0,A.Y(0)-A.Y(y))}}
+ else{g.beginPath();g.moveTo(A.X(lo),A.Y(0));for(let i=0;i<=120;i++){const x=lo+(hi-lo)*i/120;g.lineTo(A.X(x),A.Y(d.f(x,q)))}g.lineTo(A.X(hi),A.Y(0));g.fillStyle=as;g.fill();curve(A,x=>d.f(x,q),r,acc,2.5)}
+ [lo,hi].forEach(x=>dash(A,x,0,A.h&&ymaxOf(d,q,r)*1.15,css('--warm')));
+ const B=ax($('c2'),r,1);curve(B,x=>d.F(x,q),r,acc,2.5);
+ const Fl=d.F(lo,q),Fh=d.F(hi,q);
+ [[lo,Fl],[hi,Fh]].forEach(([x,y])=>{dash(B,x,0,y,css('--warm'));B.g.save();B.g.setLineDash([5,4]);B.g.strokeStyle=css('--warm');B.g.beginPath();B.g.moveTo(B.L,B.Y(y));B.g.lineTo(B.X(x),B.Y(y));B.g.stroke();B.g.restore();B.g.beginPath();B.g.arc(B.X(x),B.Y(y),4.5,0,7);B.g.fillStyle=css('--warm');B.g.fill()});
+ $('o1').innerHTML=`P(${fmt(lo)} &lt; X ≤ ${fmt(hi)}) = F(${fmt(hi)}) − F(${fmt(lo)}) = ${Fh.toFixed(4)} − ${Fl.toFixed(4)} = <b>${(Fh-Fl).toFixed(4)}</b><br>${d.disc?'左图高亮的柱子（k 取 a 之后到 b 为止）的高度之和即为该概率。':'左图阴影面积即为该概率；右图中两个橙色点的高度差也是它。'}`}
+
+/* 实验二 */
+let smp=[];
+const S=ctl($('k2'),()=>{resample();drawS()});
+function resample(){const n=+$('sn').value;smp=Array.from({length:n},()=>S.d.s(S.q))}
+bindB('sn',()=>{resample();drawS()});bindB('sb',drawS);$('go').onclick=()=>{resample();drawS()};
+function hist(vals,d,q,r,k,A0){ // 返回 [{x0,w,h}]，h 为密度
+ const n=vals.length;if(d.disc){const c=Array(q.n+1).fill(0);vals.forEach(v=>c[v]++);return c.map((v,i)=>({x0:i-.4,w:.8,h:v/n}))}
+ const w=(r[1]-r[0])/k,c=Array(k).fill(0);vals.forEach(v=>{const i=Math.floor((v-r[0])/w);if(i>=0&&i<k)c[i]++});return c.map((v,i)=>({x0:r[0]+i*w,w,h:v/(n*w)}))}
+function drawHist(cvs,vals,d,q,r,k,fth,lineCol){
+ const H=hist(vals,d,q,r,k),ym=Math.max(...H.map(b=>b.h),ymaxOf(d,q,r)*(fth?1:0))*1.12||1;
+ const A=ax(cvs,r,ym),g=A.g;g.fillStyle=css('--accs');g.strokeStyle=css('--acc');g.lineWidth=1;
+ H.forEach(b=>{const x0=A.X(b.x0),x1=A.X(b.x0+b.w);g.fillRect(x0,A.Y(b.h),x1-x0,A.Y(0)-A.Y(b.h));g.strokeRect(x0,A.Y(b.h),x1-x0,A.Y(0)-A.Y(b.h))});
+ return A}
+function drawS(){
+ const {d,q}=S,r=d.rng(q),n=smp.length,k=+$('sb').value,A=drawHist($('c3'),smp,d,q,r,k,1),g=A.g,warm=css('--warm');
+ if(d.disc){for(let i=0;i<=q.n;i++){g.beginPath();g.arc(A.X(i),A.Y(d.f(i,q)),4,0,7);g.fillStyle=warm;g.fill()}}else curve(A,x=>d.f(x,q),r,warm,2.5);
+ const srt=[...smp].sort((x,y)=>x-y),cnt=x=>{let a=0,b=n;while(a<b){const m=(a+b)>>1;srt[m]<=x?a=m+1:b=m}return a/n};
+ const B=ax($('c4'),r,1);curve(B,x=>d.F(x,q),r,warm,2.5);curve(B,cnt,r,css('--acc'),1.8);
+ const m=smp.reduce((s,v)=>s+v,0)/n,s=Math.sqrt(smp.reduce((t,v)=>t+(v-m)**2,0)/(n-1));
+ $('o2').innerHTML=`n = ${n}　样本均值 x̄ = <b>${m.toFixed(3)}</b>（理论 μ = ${fmt(d.mean(q))}）　样本标准差 s = <b>${s.toFixed(3)}</b>（理论 σ = ${fmt(d.sd(q))}）`}
+
+E.build();S.build();
+const all=()=>{drawE();drawS()};
+addEventListener('resize',all);matchMedia('(prefers-color-scheme:dark)').addEventListener('change',all);
+</script>
+</body>
+</html>

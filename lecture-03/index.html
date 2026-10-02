@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>第三讲　中心极限定理</title><link rel="stylesheet" href="../assets/style.css"></head>
+<body><header><div class="w"><h1>第三讲　中心极限定理</h1><p class="lead">无论原分布长什么样，足够多次平均之后，结果都近似正态。</p><nav><a href="../">← 课程首页</a></nav></div></header>
+<main class="w">
+<section><h2>定理内容</h2><p class="intro">这是统计推断的基础：置信区间、假设检验和 OLS 系数的显著性检验都依赖它。</p>
+<div class="eq">X₁, …, Xₘ 独立同分布，均值 μ，方差 σ² 有限　⇒　x̄ₘ 近似服从 N(μ, σ²/m)</div>
+<dl><dt>标准误</dt><dd>样本均值的标准差 σ/√m 称为标准误。m 增大 4 倍，标准误缩小一半。</dd>
+<dt>近似的快慢</dt><dd>原分布越对称，m 小时就已接近正态；越偏斜（如指数分布），需要越大的 m。</dd>
+<dt>前提条件</dt><dd>要求样本独立且方差有限。如果数据存在强相关或极端重尾，定理给出的近似可能不可靠。</dd></dl></section>
+<section id="e3">
+<h2>实验：样本均值的分布</h2>
+<p class="intro">每次从所选分布中抽 m 个数取平均，重复 3000 次，再画出这 3000 个均值的直方图。即使原分布是偏斜的指数分布，m 变大后均值也会呈钟形。</p>
+<p class="note">建议尝试：选指数分布，依次把 m 设为 1、5、30；再选二项分布，把 p 设为 0.05，观察离散分布也会被“磨平”。</p>
+<div class="lab">
+<div class="ctl" id="k3"></div>
+<div class="ctl">
+<label>每组样本量 m = <b>1</b><input type="range" id="sm" min="1" max="60" step="1" value="1"></label>
+<div><button id="go3">重新模拟</button></div>
+</div>
+<figure><figcaption>3000 个样本均值的直方图<span class="sw" style="background:var(--warm)"></span>正态曲线 N(μ, σ²/m)</figcaption><canvas id="c5"></canvas></figure>
+<div class="out" id="o3"></div>
+</div>
+</section>
+</main>
+<div class="w pn"><a href="../lecture-02/">← 上一讲：数学期望</a><a href="../lecture-04/">下一讲：回归分析与 OLS 估计 →</a></div><footer><div class="w">所有图形均在浏览器中实时计算，数据均为模拟生成。</div></footer>
+<script src="../assets/lib.js"></script>
+<script>
+
+let means=[];
+const C=ctl($('k3'),()=>{sim();drawC()});
+function sim(){const m=+$('sm').value;means=Array.from({length:3000},()=>{let t=0;for(let i=0;i<m;i++)t+=C.d.s(C.q);return t/m})}
+bindB('sm',()=>{sim();drawC()});$('go3').onclick=()=>{sim();drawC()};
+function drawC(){
+ const {d,q}=C,m=+$('sm').value,mu=d.mean(q),sg=d.sd(q)/Math.sqrt(m),r=[mu-4*sg,mu+4*sg],n=means.length;
+ const w=(r[1]-r[0])/40,c=Array(40).fill(0);means.forEach(v=>{const i=Math.floor((v-r[0])/w);if(i>=0&&i<40)c[i]++});
+ const nf=x=>Math.exp(-(((x-mu)/sg)**2)/2)/(sg*Math.sqrt(2*Math.PI)),ym=Math.max(...c)/(n*w),A=ax($('c5'),r,Math.max(ym,nf(mu))*1.15),g=A.g;
+ g.fillStyle=css('--accs');g.strokeStyle=css('--acc');c.forEach((v,i)=>{const h=v/(n*w),x0=A.X(r[0]+i*w),x1=A.X(r[0]+(i+1)*w);g.fillRect(x0,A.Y(h),x1-x0,A.Y(0)-A.Y(h));g.strokeRect(x0,A.Y(h),x1-x0,A.Y(0)-A.Y(h))});
+ curve(A,nf,r,css('--warm'),2.5);
+ const am=means.reduce((s,v)=>s+v,0)/n,as=Math.sqrt(means.reduce((t,v)=>t+(v-am)**2,0)/(n-1));
+ $('o3').innerHTML=`m = ${m}　均值的平均 = <b>${am.toFixed(3)}</b>（理论 μ = ${fmt(mu)}）　均值的标准差 = <b>${as.toFixed(3)}</b>（理论 σ/√m = ${fmt(sg)}）`}
+
+function redraw(){drawC()}
+C.build();
+addEventListener('resize',()=>{try{redraw()}catch(e){}});matchMedia("(prefers-color-scheme:dark)").addEventListener("change",()=>dispatchEvent(new Event("resize")));
+</script></body></html>

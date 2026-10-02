@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>第五讲　回归分析的现实应用</title><link rel="stylesheet" href="../assets/style.css"></head>
+<body><header><div class="w"><h1>第五讲　回归分析的现实应用</h1><p class="lead">会跑回归只是第一步，更重要的是知道结果能说明什么、不能说明什么。</p><nav><a href="../">← 课程首页</a></nav></div></header>
+<main class="w">
+<section><h2>回归能回答什么</h2><dl>
+<dt>描述</dt><dd>学历越高的人工资平均越高吗？回归给出一个平均意义上的斜率。</dd>
+<dt>预测</dt><dd>给定 x 预测 y，关注的是预测准不准，不关心为什么。</dd>
+<dt>因果</dt><dd>多读一年书会让工资提高多少？这要求没有遗漏的混杂因素，仅靠一条回归线往往做不到。</dd>
+<dt>遗漏变量偏误</dt><dd>若真实模型含有与 x 相关的变量 a，而回归中漏掉了它，则 b₁ ≈ β₁ + γ · δ。其中 γ 是 a 对 y 的影响，δ 是 a 对 x 的回归系数。</dd></dl>
+<p class="note">本讲数据全为模拟生成。真实研究需要真实数据，以及随机实验、工具变量、双重差分等更严格的方法。</p></section>
+<section id="a1"><h2>实验一：教育回报与遗漏变量偏误</h2><p class="intro">模拟 500 人：工资对数 = 1.5 + 0.08 × 受教育年限 + γ × 能力 + 噪声。真实教育回报是 0.08，但能力强的人往往也读书更久。只对教育年限回归（青色线）会高估，把能力也放进回归（橙色线）则接近真值。</p>
+<div class="lab"><div class="ctl"><label>能力与教育的相关系数 ρ = <b>0.6</b><input type="range" id="rho" min="0" max="0.9" step="0.05" value="0.6"></label>
+<label>能力对工资的影响 γ = <b>0.12</b><input type="range" id="ga" min="0" max="0.3" step="0.01" value="0.12"></label><div><button id="g1">重新生成人群</button></div></div>
+<figure><figcaption>横轴：受教育年限；纵轴：工资对数<span class="sw" style="background:var(--acc)"></span>不控制能力<span class="sw" style="background:var(--warm)"></span>控制能力</figcaption><canvas id="c1"></canvas></figure><div class="out" id="o1"></div></div></section>
+<section id="a2"><h2>实验二：用残差图诊断模型</h2><p class="intro">拟合线看起来都“还行”，但残差图会暴露问题。切换四种数据，观察右图残差是否随机散布在 0 附近。</p>
+<div class="lab"><div class="ctl"><label>数据类型<br><select id="md"><option value="l">线性且同方差（正常）</option><option value="q">非线性（二次关系）</option><option value="h">异方差</option><option value="o">含高杠杆离群点</option></select></label><div><button id="g2">重新生成</button></div></div>
+<div class="pair"><figure><figcaption>散点与 OLS 直线</figcaption><canvas id="c2"></canvas></figure><figure><figcaption>残差 e 对 x 的散点图</figcaption><canvas id="c3"></canvas></figure></div><div class="out" id="o2"></div></div></section></main>
+<div class="w pn"><a href="../lecture-04/">← 上一讲：回归分析与 OLS 估计</a><a href="../">回到课程首页</a></div><footer><div class="w">所有图形均在浏览器中实时计算，数据均为模拟生成。</div></footer>
+<script src="../assets/lib.js"></script>
+<script>
+const N=500;let a=[],z=[],e=[],xs=[],es=[];
+function rs(){const g=()=>Array.from({length:N},gauss);a=g();z=g();e=g();xs=Array.from({length:150},()=>Math.random()*10);es=xs.map(gauss);d1();d2()}
+['rho','ga'].forEach(i=>bindB(i,d1));$('g1').onclick=rs;$('g2').onclick=rs;$('md').onchange=d2;
+function d1(){const rho=+$('rho').value,ga=+$('ga').value,edu=a.map((t,i)=>12+2*(rho*t+Math.sqrt(1-rho*rho)*z[i])),lw=edu.map((u,i)=>1.5+.08*u+ga*a[i]+.3*e[i]),[b0,bs]=ols(edu,lw);
+ const m=v=>v.reduce((s,t)=>s+t,0)/N,me=m(edu),ma=m(a),ml=m(lw);let s11=0,s12=0,s22=0,s1y=0,s2y=0;
+ for(let i=0;i<N;i++){const p=edu[i]-me,q=a[i]-ma,y=lw[i]-ml;s11+=p*p;s12+=p*q;s22+=q*q;s1y+=p*y;s2y+=q*y}
+ const bl=(s22*s1y-s12*s2y)/(s11*s22-s12*s12),A=ax($('c1'),[4,20],Math.max(...lw)+.2,Math.min(...lw)-.2);
+ scat(A,edu,lw,css('--accs'),2.5);seg(A,4,b0+bs*4,20,b0+bs*20,css('--acc'),2.5);seg(A,4,ml+bl*(4-me),20,ml+bl*(20-me),css('--warm'),2.5);
+ $('o1').innerHTML=`真实教育回报 0.080　不控制能力：<b>${bs.toFixed(3)}</b>　控制能力后：<b>${bl.toFixed(3)}</b><br>偏误公式 γ·ρ/2 = ${(ga*rho/2).toFixed(3)}，所以不控制能力时应约为 0.080 + ${(ga*rho/2).toFixed(3)} = ${(.08+ga*rho/2).toFixed(3)}`}
+function d2(){const t=$('md').value,Y=xs.map((x,i)=>t==='q'?.4*(x-5)**2+1.5*es[i]:t==='h'?2+1.5*x+(.2+.4*x)*es[i]:2+1.5*x+1.5*es[i]),X=[...xs];
+ if(t==='o'){X.push(10,9.8);Y.push(-8,-10)}
+ const [b0,b1]=ols(X,Y),R=X.map((x,i)=>Y[i]-b0-b1*x),A=ax($('c2'),[0,10],Math.max(...Y)+1,Math.min(...Y)-1);
+ scat(A,X,Y,css('--acc'),2.5);seg(A,0,b0,10,b0+10*b1,css('--warm'),2.5);
+ const rm=Math.max(...R.map(Math.abs))*1.1,B=ax($('c3'),[0,10],rm,-rm);seg(B,0,0,10,0,css('--warm'),1.5);scat(B,X,R,css('--acc'),2.5);
+ $('o2').textContent={l:'残差随机散布在 0 附近，没有明显结构，线性模型是合适的。',q:'残差呈 U 形：直线遗漏了弯曲的关系，应加入二次项或换函数形式。',h:'残差随 x 增大而扩散：存在异方差，普通标准误不可靠，应使用稳健标准误。',o:'右下角的少数极端点把拟合线拉偏：应核实数据来源，并比较剔除前后的结果。'}[t]}
+function redraw(){d1();d2()}
+rs();
+addEventListener('resize',()=>{try{redraw()}catch(e){}});matchMedia("(prefers-color-scheme:dark)").addEventListener("change",()=>dispatchEvent(new Event("resize")));
+</script></body></html>
